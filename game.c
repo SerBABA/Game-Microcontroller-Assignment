@@ -1,18 +1,20 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "system.h"
-#include "button.h"
 #include "pacer.h"
 #include "ir_uart.h"
+#include "button.h"
 #include "navswitch.h"
+#include "timer.h"
 #include "tinygl.h"
 #include "../fonts/font5x7_1.h"
 
+
 #define PACER_RATE 500
 #define MESSAGE_RATE 10
-#define TIMEOUT_LENGTH 5000
 
-uint8_t ourWin(char ourChoice, char theirChoice) {
+uint8_t ourWin(char ourChoice, char theirChoice)
+{
 
     if (ourChoice == 'P' && theirChoice == 'R') {
         return 1;
@@ -38,11 +40,12 @@ int main (void)
 {
     char options[3] = {'P', 'S', 'R'};
     int amtOptions = 3;
-    int ourChoice = 0;
     int i = 0;
+    int ourChoice = 0;
     char theirChoice = 0;
     bool waitChosenLetter = 1;
     bool waitReceivedLetter = 1;
+    timer_tick_t period = TIMER_DELAY_MAX;
 
     system_init ();
     tinygl_init (PACER_RATE);
@@ -50,7 +53,8 @@ int main (void)
     tinygl_text_speed_set (MESSAGE_RATE);
     navswitch_init ();
     ir_uart_init();
-
+    timer_init ();
+    button_init();
     pacer_init (PACER_RATE);
 
 
@@ -58,6 +62,15 @@ int main (void)
         pacer_wait();
         tinygl_update();
         navswitch_update();
+        button_update ();
+
+        if (button_push_event_p (BUTTON1)) {
+            waitReceivedLetter = 1;
+            waitChosenLetter = 1;
+            ourChoice = 0;
+            theirChoice = 0;
+        }
+
 
         // choose our letter
         if (waitChosenLetter) {
@@ -86,10 +99,10 @@ int main (void)
 
             if (ir_uart_read_ready_p()) {
                 theirChoice = ir_uart_getc();
-                for (i=0;i<amtOptions;i++) {
-                        if (theirChoice == options[i]) {
-                            waitReceivedLetter = 0;
-                        }
+                for (i=0; i<amtOptions; i++) {
+                    if (theirChoice == options[i]) {
+                        waitReceivedLetter = 0;
+                    }
                 }
             }
 
@@ -109,8 +122,6 @@ int main (void)
             } else {
                 display_character('L');
             }
-            // waitReceivedLetter = TRUE;
-            // waitChosenLetter = TRUE;
         }
 
 
