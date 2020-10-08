@@ -12,7 +12,7 @@
 */
 
 #include "interface.h"
-
+#include "controls.h"
 
 #define PACER_RATE 500
 /*
@@ -59,6 +59,7 @@ int main (void)
     tinygl_text_speed_set (MESSAGE_RATE);
     */
     interface_init(PACER_RATE);
+    controls_init();
 /*
     navswitch_init ();
     button_init();
@@ -71,13 +72,14 @@ int main (void)
     while (1) {
         pacer_wait();
         interface_update();
+        controls_update();
 /*
         tinygl_update();
         navswitch_update();
         button_update ();
 */
 
-        if (button_push_event_p (BUTTON1)) {
+        if (continue_button_event_p()) {
             waitReceivedLetter = 1;
             waitChosenLetter = 1;
             ourChoice = 0;
@@ -87,11 +89,11 @@ int main (void)
 
         // choose our letter
         if (waitChosenLetter) {
-            if (navswitch_push_event_p (NAVSWITCH_NORTH)) {
+            if (cycle_up_event_p()) {
                 ourChoice = (ourChoice + 1) % amtOptions;
             }
 
-            if(navswitch_push_event_p (NAVSWITCH_SOUTH)) {
+            if(cycle_down_event_p()) {
                 ourChoice -= 1;
                 if (ourChoice < 0) {
                     ourChoice = amtOptions-1;
@@ -99,7 +101,7 @@ int main (void)
             }
 
             // send letter // add error checks
-            if (navswitch_push_event_p (NAVSWITCH_PUSH)) {
+            if (select_choice_push_event_p()) {
                 ir_uart_putc(options[ourChoice]);
                 waitChosenLetter = 0;
             }
