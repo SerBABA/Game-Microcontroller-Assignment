@@ -3,15 +3,21 @@
 #include "system.h"
 #include "pacer.h"
 #include "ir_uart.h"
-#include "button.h"
-#include "navswitch.h"
 #include "timer.h"
+/*
 #include "tinygl.h"
 #include "../fonts/font5x7_1.h"
+#include "button.h"
+#include "navswitch.h"
+*/
+
+#include "interface.h"
 
 
 #define PACER_RATE 500
+/*
 #define MESSAGE_RATE 10
+*/
 
 uint8_t ourWin(char ourChoice, char theirChoice)
 {
@@ -26,7 +32,7 @@ uint8_t ourWin(char ourChoice, char theirChoice)
     return 0;
 }
 
-
+/*
 void display_character (char character)
 {
     char buffer[2];
@@ -34,7 +40,7 @@ void display_character (char character)
     buffer[1] = '\0';
     tinygl_text (buffer);
 }
-
+*/
 
 int main (void)
 {
@@ -45,24 +51,31 @@ int main (void)
     char theirChoice = 0;
     bool waitChosenLetter = 1;
     bool waitReceivedLetter = 1;
-    timer_tick_t period = TIMER_DELAY_MAX;
 
     system_init ();
+   /*
     tinygl_init (PACER_RATE);
     tinygl_font_set (&font5x7_1);
     tinygl_text_speed_set (MESSAGE_RATE);
+    */
+    interface_init(PACER_RATE);
+/*
     navswitch_init ();
+    button_init();
+*/
     ir_uart_init();
     timer_init ();
-    button_init();
     pacer_init (PACER_RATE);
 
 
     while (1) {
         pacer_wait();
+        interface_update();
+/*
         tinygl_update();
         navswitch_update();
         button_update ();
+*/
 
         if (button_push_event_p (BUTTON1)) {
             waitReceivedLetter = 1;
@@ -111,16 +124,16 @@ int main (void)
 
         // compare and display result
         if (waitChosenLetter) {
-            display_character(options[ourChoice]);
+            interface_display_character(options[ourChoice]);
         } else if (waitReceivedLetter) {
-            display_character('X');
+            interface_display_character('X');
         } else {
             if (options[ourChoice] == theirChoice) {
-                display_character('T');
+                interface_display_character('T');
             } else if (ourWin(options[ourChoice], theirChoice)) {
-                display_character('W');
+                interface_display_character('W');
             } else {
-                display_character('L');
+                interface_display_character('L');
             }
         }
 
