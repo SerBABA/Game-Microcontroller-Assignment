@@ -8,7 +8,6 @@
 #include "button.h"
 #include "navswitch.h"
 
-
 /** Has the cycle up option has been pressed.
  *  @return true if the cycle up option was chosen. Otherwise false.*/
 bool cycle_up_event_p(void)

@@ -10,7 +10,6 @@
 
 #define MESSAGE_RATE 10
 
-
 static int pacer_rate = 0;
 
 

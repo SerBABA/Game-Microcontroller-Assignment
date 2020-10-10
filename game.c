@@ -1,144 +1,152 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include "system.h"
 #include "pacer.h"
 #include "ir_uart.h"
 #include "timer.h"
-/*
-#include "tinygl.h"
-#include "../fonts/font5x7_1.h"
-#include "button.h"
-#include "navswitch.h"
-*/
 
+#include "game.h"
 #include "interface.h"
 #include "controls.h"
 
 #define PACER_RATE 500
-/*
-#define MESSAGE_RATE 10
-*/
+#define INTERFACE_RATE 500
+#define CONTROLS_RATE 200
+#define RECEIVING_RATE 250
 
-uint8_t ourWin(char ourChoice, char theirChoice)
+uint8_t our_win(char our_choice, char their_choice)
 {
-
-    if (ourChoice == 'P' && theirChoice == 'R') {
-        return 1;
-    } else if (ourChoice == 'R' && theirChoice == 'S') {
-        return 1;
-    } else if (ourChoice == 'S' && theirChoice == 'P') {
-        return 1;
+    if (our_choice == PAPER && their_choice == ROCK) {
+        return true;
+    } else if (our_choice == ROCK && their_choice == SCISSORS) {
+        return true;
+    } else if (our_choice == SCISSORS && their_choice == PAPER) {
+        return true;
     }
-    return 0;
+    return false;
+
 }
 
-/*
-void display_character (char character)
-{
-    char buffer[2];
-    buffer[0] = character;
-    buffer[1] = '\0';
-    tinygl_text (buffer);
+
+void update_all(void) {
+    interface_update();
+    controls_update();
 }
-*/
+
+
+void choose_letter(bool* wait_chosen_letter, char choice)
+{
+    if (select_choice_push_event_p()) {
+        ir_uart_putc(choice);
+        *wait_chosen_letter = false;
+    } else {
+        *wait_chosen_letter = true;
+    }
+}
+
+
+void cycle_choices(int* our_choice, int options_count) {
+    if (cycle_up_event_p()) {
+        *our_choice = (*our_choice + 1) % options_count;
+    }
+
+    if(cycle_down_event_p()) {
+        *our_choice -= 1;
+        if (*our_choice < 0) {
+            *our_choice = options_count-1;
+        }
+    }
+}
+
+
+void game_init(void) {
+    system_init ();
+
+    interface_init(PACER_RATE);
+    controls_init();
+    ir_uart_init();
+    timer_init ();
+
+    pacer_init (PACER_RATE);
+}
+
+
+
+
 
 int main (void)
 {
-    char options[3] = {'P', 'S', 'R'};
-    int amtOptions = 3;
+    char options[] = {PAPER, SCISSORS, ROCK};
+    int options_count = 3;
+
+    char* prev_string = NULL;
+    char* curr_string = NULL;
+
     int i = 0;
-    int ourChoice = 0;
-    char theirChoice = 0;
-    bool waitChosenLetter = 1;
-    bool waitReceivedLetter = 1;
+    int our_choice = 0;
+    char their_choice = 0;
+    bool wait_chosen_letter = true;
+    bool wait_received_letter = true;
 
-    system_init ();
-   /*
-    tinygl_init (PACER_RATE);
-    tinygl_font_set (&font5x7_1);
-    tinygl_text_speed_set (MESSAGE_RATE);
-    */
-    interface_init(PACER_RATE);
-    controls_init();
-/*
-    navswitch_init ();
-    button_init();
-*/
-    ir_uart_init();
-    timer_init ();
-    pacer_init (PACER_RATE);
+    //bool game_started = false;
+    //uint8_t score = 0;
 
+    game_init();
 
     while (1) {
         pacer_wait();
-        interface_update();
-        controls_update();
-/*
-        tinygl_update();
-        navswitch_update();
-        button_update ();
-*/
+        update_all();
 
         if (continue_button_event_p()) {
-            waitReceivedLetter = 1;
-            waitChosenLetter = 1;
-            ourChoice = 0;
-            theirChoice = 0;
+            wait_received_letter = 1;
+            wait_chosen_letter = 1;
+            our_choice = 0;
+            their_choice = 0;
         }
 
-
-        // choose our letter
-        if (waitChosenLetter) {
-            if (cycle_up_event_p()) {
-                ourChoice = (ourChoice + 1) % amtOptions;
-            }
-
-            if(cycle_down_event_p()) {
-                ourChoice -= 1;
-                if (ourChoice < 0) {
-                    ourChoice = amtOptions-1;
-                }
-            }
-
-            // send letter // add error checks
-            if (select_choice_push_event_p()) {
-                ir_uart_putc(options[ourChoice]);
-                waitChosenLetter = 0;
-            }
+        if (wait_chosen_letter) {
+            cycle_choices(&our_choice, options_count);
+            choose_letter(&wait_chosen_letter, options[our_choice]);
         }
-
 
         // & timeout &
         // wait for letter
-        if (waitReceivedLetter) {
-
+        if (wait_received_letter) {
             if (ir_uart_read_ready_p()) {
-                theirChoice = ir_uart_getc();
-                for (i=0; i<amtOptions; i++) {
-                    if (theirChoice == options[i]) {
-                        waitReceivedLetter = 0;
+                their_choice = ir_uart_getc();
+                for (i=0; i<options_count; i++) {
+                    if (their_choice == options[i]) {
+                        wait_received_letter = false;
                     }
                 }
             }
-
         }
 
 
+        if (prev_string == NULL && curr_string==NULL) {
+            curr_string = &options[our_choice];
+        }
+
         // compare and display result
-        if (waitChosenLetter) {
-            interface_display_character(options[ourChoice]);
-        } else if (waitReceivedLetter) {
-            interface_display_character('X');
+        if (wait_chosen_letter) {
+            curr_string = &options[our_choice];
+        } else if (wait_received_letter) {
+            curr_string = WAITING;
         } else {
-            if (options[ourChoice] == theirChoice) {
-                interface_display_character('T');
-            } else if (ourWin(options[ourChoice], theirChoice)) {
-                interface_display_character('W');
+            if (options[our_choice] == their_choice) {
+                curr_string = TIE;
+            } else if (our_win(options[our_choice], their_choice)) {
+                curr_string = WINNER;
             } else {
-                interface_display_character('L');
+                curr_string = LOSER;
             }
         }
 
+        if (strcmp(curr_string, prev_string) != 0) {
+            interface_display_character(*curr_string);
+            prev_string = curr_string;
+        }
 
     }
 }

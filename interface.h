@@ -7,17 +7,10 @@
 #define INTERFACE_H
 
 
-#define PAPER 'P'
-#define SCISSORS 'S'
-#define ROCK 'R'
-#define WIN 'W'
-#define LOSE 'L'
-#define WAIT "WAIT FOR OTHER PLAYER"
-
 
 /** Display a string on the display.
  *  @param string is the string you want to display.*/
-void interface_display_string(const char* string);
+void interface_display_string(const char string[]);
 
 
 /** Displays a single chracter on the display.
