@@ -1,6 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
+
 #define PAPER 'P'
 #define SCISSORS 'S'
 #define ROCK 'R'

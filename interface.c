@@ -16,11 +16,13 @@ static int pacer_rate = 0;
 /** Initializes the display.
  *  @param new_pacer_rate is the pacer rate which is
  *         for initializing the tinygl module.*/
-void interface_init(const int new_pacer_rate)
+void interface_init(int new_pacer_rate)
 {
     pacer_rate = new_pacer_rate;
     tinygl_init (pacer_rate);
     tinygl_font_set (&font5x7_1);
+    //tinygl_text_mode_set(TINYGL_TEXT_MODE_SCROLL);    
+    tinygl_text_mode_set (TINYGL_TEXT_MODE_STEP);
     tinygl_text_speed_set (MESSAGE_RATE);
 }
 
@@ -33,7 +35,7 @@ void interface_update(void)
 
 /** Displays a single chracter on the display.
  *  @param character is the character you want to display.*/
-void interface_display_character(const char character)
+void interface_display_character(char character)
 {
     char buffer[2];
     buffer[0] = character;
@@ -44,7 +46,7 @@ void interface_display_character(const char character)
 
 /** Display a string on the display.
  *  @param string is the string you want to display.*/
-void interface_display_string(const char string[])
+void interface_display_string(char string[])
 {
     tinygl_text(string);
 }

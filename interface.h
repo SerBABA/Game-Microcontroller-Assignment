@@ -10,18 +10,18 @@
 
 /** Display a string on the display.
  *  @param string is the string you want to display.*/
-void interface_display_string(const char string[]);
+void interface_display_string(char string[]);
 
 
 /** Displays a single chracter on the display.
  *  @param character is the character you want to display.*/
-void interface_display_character(const char character);
+void interface_display_character(char character);
 
 
 /** Initializes the display.
  *  @param new_pacer_rate is the pacer rate which is
  *         for initializing the tinygl module.*/
-void interface_init(const int new_pacer_rate);
+void interface_init(int new_pacer_rate);
 
 
 /** Updates the display.*/

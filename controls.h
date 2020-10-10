@@ -6,6 +6,7 @@
 #ifndef CONTROLS_H
 #define CONTROLS_H
 
+
 /** Has the cycle up option has been pressed.
  *  @return true if the cycle up option was chosen. Otherwise false.*/
 bool cycle_up_event_p(void);
@@ -23,6 +24,14 @@ bool continue_button_event_p (void);
 /** Has the choice selection option has been pressed.
  *  @return true if the selection option button was pressed. Otherwise false.*/
 bool select_choice_push_event_p(void);
+
+
+/** Cycles between available options you can choose from.
+ *  @param our_choice_index is the index within the avialble options range.
+ *  @param options_count is the number of available options.
+ *  @param increment controls the movement down the list of options and how much we move
+ *         per nav switch presses.*/
+void cycle_choices(int* our_choice_index, int options_count, int increment);
 
 
 /** Updates the controls modules.*/

@@ -8,6 +8,9 @@
 #include "button.h"
 #include "navswitch.h"
 
+#define LOWER_INDEX_BOUND 0
+#define OPTIONS_INCREMENT 1
+
 /** Has the cycle up option has been pressed.
  *  @return true if the cycle up option was chosen. Otherwise false.*/
 bool cycle_up_event_p(void)
@@ -45,6 +48,24 @@ void controls_update(void)
 {
     navswitch_update();
     button_update();
+}
+
+/** Cycles between available options you can choose from.
+ *  @param our_choice_index is the index within the avialble options range.
+ *  @param options_count is the number of available options.
+ *  @param increment controls the movement down the list of options and how much we move
+ *         per nav switch presses.*/
+void cycle_choices(int* our_choice_index, int options_count, int increment)
+{
+    if (cycle_up_event_p()) {
+        *our_choice_index = (*our_choice_index+increment) % options_count;
+
+    } else if (cycle_down_event_p()) {
+        *our_choice_index -= increment;
+        if (*our_choice_index < LOWER_INDEX_BOUND) {
+            *our_choice_index += options_count;
+        }
+    }
 }
 
 
