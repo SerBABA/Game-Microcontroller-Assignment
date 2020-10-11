@@ -128,7 +128,7 @@ int main (void)
                 reset_game_states(&wait_received_letter, &wait_chosen_letter);
             }
             if (wait_chosen_letter) {
-                cycle_choices(&our_choice_index, options_count, OPTIONS_INCREMENT);
+                cycle_choices(&our_choice_index, options_count);
                 our_choice = options[our_choice_index];
                 choose_letter(&wait_chosen_letter, our_choice);
             }

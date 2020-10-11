@@ -28,10 +28,8 @@ bool select_choice_push_event_p(void);
 
 /** Cycles between available options you can choose from.
  *  @param our_choice_index is the index within the avialble options range.
- *  @param options_count is the number of available options.
- *  @param increment controls the movement down the list of options and how much we move
- *         per nav switch presses.*/
-void cycle_choices(int* our_choice_index, int options_count, int increment);
+ *  @param options_count is the number of available options.*/
+void cycle_choices(int* our_choice_index, int options_count);
 
 
 /** Updates the controls modules.*/
