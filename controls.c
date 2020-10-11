@@ -7,6 +7,7 @@
 #include "system.h"
 #include "button.h"
 #include "navswitch.h"
+#include "controls.h"
 
 #define LOWER_INDEX_BOUND 0
 #define OPTIONS_INCREMENT 1

@@ -18,6 +18,9 @@ void interface_display_string(char string[]);
 void interface_display_character(char character);
 
 
+void interface_clear(void);
+
+
 /** Initializes the display.
  *  @param new_pacer_rate is the pacer rate which is
  *         for initializing the tinygl module.*/

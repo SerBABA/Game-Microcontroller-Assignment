@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 
@@ -8,11 +7,15 @@
 #include "game.h"
 #include "interface.h"
 #include "controls.h"
+#include "timeout.h"
 
 #define PACER_RATE 1000
 #define INTERFACE_RATE 500
 #define CONTROLS_RATE 200
-#define IR_RECEIVING_RATE 200
+#define IR_RECEIVING_RATE 300
+
+#define MAX_TIMOUT_SECONDS 20 
+
 
 
 bool is_our_win(char our_choice, char their_choice)
@@ -27,6 +30,8 @@ bool is_our_win(char our_choice, char their_choice)
     return false;
 
 }
+
+
 
 
 void choose_letter(bool* wait_chosen_letter, char choice)
@@ -87,6 +92,7 @@ int main (void)
 {
     char options[] = {PAPER, SCISSORS, ROCK};
     int options_count = 3;
+    set_timeout_max_period(MAX_TIMOUT_SECONDS);
 
     char* curr_string = NULL;
 
@@ -126,11 +132,17 @@ int main (void)
             if (continue_button_event_p()) {
                 reset_game_choices(&our_choice_index, &our_choice, &their_choice);
                 reset_game_states(&wait_received_letter, &wait_chosen_letter);
+                interface_clear();
+                prev_char = 0;
+                prev_string = NULL;
             }
             if (wait_chosen_letter) {
                 cycle_choices(&our_choice_index, options_count);
                 our_choice = options[our_choice_index];
                 choose_letter(&wait_chosen_letter, our_choice);
+                if(!wait_chosen_letter) {
+                    interface_clear();             
+                }
             }
 
             controls_tick = 0;
@@ -148,36 +160,38 @@ int main (void)
         }
 
 
-        if (wait_chosen_letter) {
-            if(our_choice != prev_char) {
-                interface_display_character(our_choice);
-                prev_char = our_choice;
-            }
-        } else {
-            if (wait_received_letter) {
-                curr_string = WAITING;
-            } else {
-                if (our_choice == their_choice) {
-                    curr_string = TIE;
-                } else if (is_our_win(our_choice, their_choice)) {
-                    curr_string = WINNER;
-                    our_score++;
-                } else {
-                    curr_string = LOSER;
-                    their_score++;
-                }
 
-            }
-
-            if (strcmp(curr_string, prev_string) != 0) {
-                interface_display_string(curr_string);
-                prev_string = curr_string;
-            }
-
-        }
 
 
         if (interface_tick >= interface_max_ticks) {
+            if (wait_chosen_letter) {
+                if(our_choice != prev_char) {
+                    interface_display_character(our_choice);
+                    prev_char = our_choice;
+                }
+            } else {
+                if (wait_received_letter) {
+                    curr_string = WAITING;
+                } else {
+                    if (our_choice == their_choice) {
+                        curr_string = TIE;
+                    } else if (is_our_win(our_choice, their_choice)) {
+                        curr_string = WINNER;
+                        our_score++;
+                    } else {
+                        curr_string = LOSER;
+                        their_score++;
+                    }
+
+                }
+
+                if (strcmp(curr_string, prev_string) != 0) {
+                    interface_display_string(curr_string);
+                    prev_string = curr_string;
+                }
+
+            }
+            
             interface_update();
             interface_tick = 0;
         }
