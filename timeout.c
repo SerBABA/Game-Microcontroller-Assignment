@@ -11,6 +11,7 @@ static bool run = false;
 static uint16_t timeout_tick = 0;
 static uint16_t max_timeout_period = 0;
 static uint16_t pacer_rate = 0;
+static timeout_type_t current_timeout_type = EMPTY;
 
 
 /** Used to determine whether or not the timeout was reached.
@@ -27,10 +28,6 @@ bool timeout_reached(void)
  *  wait for.*/
 void set_timeout_max_period(uint16_t timeout_seconds) {
     max_timeout_period = timeout_seconds * pacer_rate;
-/*
-    max_timeout_period = 5 * 300;
-*/
-
 }
 
 
@@ -43,10 +40,11 @@ bool timeout_is_running(void)
 
 
 /** Resets the timeout counter.*/
-void reset_timeout_counter(void)
+void clear_timeout_counter(void)
 {
     timeout_tick = 0;
     stop_timeout_counter();
+    current_timeout_type = EMPTY;
 }
 
 
@@ -69,15 +67,27 @@ void timeout_update(void)
     timeout_tick++;
 }
 
+
+void ir_receiver_timeout_init(void)
+{
+    if (current_timeout_type != IR_TIMEOUT) {
+        clear_timeout_counter();
+        current_timeout_type = IR_TIMEOUT;
+        set_timeout_max_period(IR_MAX_TIMEOUT);
+        start_timeout_counter();
+    }
+}
+
 /** IR receivers' timeout function.
  *  @return true if timeout reached and running. Otherwise false.*/
-bool ir_receiver_timeout(bool wait_received_letter)
+bool ir_receiver_timeout(void)
 {
-    if (wait_received_letter) {
+    if (current_timeout_type == IR_TIMEOUT) {
         if (timeout_is_running()) {
             if (timeout_reached()) {
+                timeout_tick = 0;
+                stop_timeout_counter();
                 return true;
-                reset_timeout_counter();
             } else {
                 timeout_update();
             }
@@ -85,9 +95,9 @@ bool ir_receiver_timeout(bool wait_received_letter)
             start_timeout_counter();
         }
     }
+
     return false;
 }
-
 
 
 /** Initializes the timeout module.

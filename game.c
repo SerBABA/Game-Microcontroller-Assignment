@@ -14,8 +14,22 @@
 #define CONTROLS_RATE 200
 #define IR_RECEIVING_RATE 300
 
-#define MAX_TIMOUT_SECONDS 5
 
+/*
+static game_state_t current_game_state = WAITING_TO_START;
+*/
+
+static state_data current_state_data = {
+    SELECTING_CHOICE,
+    NULL,
+    NULL,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+};
 
 bool is_our_win(char our_choice, char their_choice)
 {
@@ -27,50 +41,46 @@ bool is_our_win(char our_choice, char their_choice)
         return true;
     }
     return false;
-
 }
 
 
-void choose_letter(bool* wait_chosen_letter, char choice)
+void choose_letter(char choice)
 {
     if (select_choice_push_event_p()) {
         ir_uart_putc(choice);
-        *wait_chosen_letter = false;
-    } else {
-        *wait_chosen_letter = true;
+        current_state_data.current_game_state = WAITING_ON_RESPONSE;
+        interface_clear();
     }
 }
 
 
-void reset_game_choices(int8_t* our_choice_index, char* our_choice, char* their_choice)
+void reset_game(void)
 {
-    *our_choice_index = 0;
-    *our_choice = 0;
-    *their_choice = 0;
+    current_state_data.current_game_state = SELECTING_CHOICE;
+    current_state_data.our_choice_index = 0;
+    current_state_data.our_choice = 0;
+    current_state_data.their_choice = 0;
+    current_state_data.prev_char = 0;
+    current_state_data.prev_string = NULL;
+    interface_clear();
 }
 
 
-void reset_game_states(bool* wait_received_letter, bool* wait_chosen_letter)
+void receive_choice( const char options[], const uint8_t options_count)
 {
-    *wait_received_letter = true;
-    *wait_chosen_letter = true;
-}
-
-
-void receive_choice(bool* wait_received_letter, char* their_choice, char options[], uint8_t options_count)
-{
-    static uint8_t i = 0;
+    uint8_t i = 0;
 
     if (ir_uart_read_ready_p()) {
-        *their_choice = ir_uart_getc();
+        current_state_data.their_choice = ir_uart_getc();
         for (i=0; i<options_count; i++) {
-            if (*their_choice == options[i]) {
-                *wait_received_letter = false;
+            if (current_state_data.their_choice == options[i]) {
+                current_state_data.current_game_state = SHOWING_RESULTS;
                 return;
             }
         }
     }
 }
+
 
 
 void game_init(void)
@@ -83,124 +93,126 @@ void game_init(void)
     pacer_init (PACER_RATE);
 }
 
+void button_task(const char options[], const uint8_t options_count)
+{
 
+    int8_t* our_choice_index = &current_state_data.our_choice_index;
+    char* our_choice = &current_state_data.our_choice;
+
+    if (continue_button_event_p()) {
+        reset_game();
+    }
+    if (current_state_data.current_game_state == SELECTING_CHOICE) {
+        cycle_choices(our_choice_index, options_count);
+        *our_choice = options[*our_choice_index];
+        choose_letter(*our_choice);
+    }
+}
+
+
+void interface_task(void)
+{
+
+/*
+    char* our_choice = &current_state_data.our_choice;
+    char* their_choice = &current_state_data.their_choice;
+    char* prev_char = &current_state_data.prev_char;
+    char* curr_string = current_state_data.curr_string;
+    char* prev_string = current_state_data.prev_string;
+    uint8_t* our_score = &current_state_data.our_score;
+    uint8_t* their_score = &current_state_data.their_score;
+*/
+
+    switch(current_state_data.current_game_state) {
+
+        case SELECTING_CHOICE:
+
+            if(current_state_data.our_choice != current_state_data.prev_char) {
+                interface_display_character(current_state_data.our_choice);
+                current_state_data.prev_char = current_state_data.our_choice;
+            }
+            break;
+
+        case WAITING_ON_RESPONSE:
+            current_state_data.curr_string = WAITING;
+            break;
+
+        case SHOWING_RESULTS:
+            if (current_state_data.our_choice == current_state_data.their_choice) {
+                current_state_data.curr_string = TIE;
+            } else if (is_our_win(current_state_data.our_choice, current_state_data.their_choice)) {
+                current_state_data.curr_string = WINNER;
+                current_state_data.our_score += 1;
+            } else {
+                current_state_data.curr_string = LOSER;
+                current_state_data.their_score += 1;
+            }
+            break;
+
+        default:
+            interface_display_string("ERROR");
+
+        }
+
+        if (strcmp(current_state_data.curr_string, current_state_data.prev_string) != 0) {
+            interface_display_string(current_state_data.curr_string);
+            current_state_data.prev_string = current_state_data.curr_string;
+        }
+
+}
+
+
+
+void ir_task(const char options[], const uint8_t options_count)
+{
+    if (current_state_data.current_game_state == WAITING_ON_RESPONSE || current_state_data.current_game_state == SELECTING_CHOICE) {
+        ir_receiver_timeout_init();
+        receive_choice(options, options_count);
+        if (ir_receiver_timeout()) {
+            ir_uart_putc(current_state_data.our_choice);
+        }
+    }
+}
 
 
 int main (void)
 {
-    char options[] = {PAPER, SCISSORS, ROCK};
-    uint8_t options_count = 3;
-
-    char* curr_string = NULL;
-
-    char* prev_string = NULL;
-    char prev_char = 0;
-
-    int8_t our_choice_index = 0;
-    char our_choice = 0;
-    char their_choice = 0;
-    bool wait_chosen_letter = true;
-    bool wait_received_letter = true;
-
+    const char options[] = {PAPER, SCISSORS, ROCK};
+    const uint8_t options_count = 3;
 
     uint8_t controls_tick = 0;
     uint8_t interface_tick = 0;
-    uint8_t ir_receiving_tick = 0;
+    uint8_t ir_tick = 0;
 
     uint8_t control_max_ticks = PACER_RATE/CONTROLS_RATE;
-    uint8_t ir_receiving_max_ticks = PACER_RATE/IR_RECEIVING_RATE;
+    uint8_t ir_max_ticks = PACER_RATE/IR_RECEIVING_RATE;
     uint8_t interface_max_ticks = PACER_RATE/INTERFACE_RATE;
 
-
-    uint8_t our_score = 0;
-    uint8_t their_score = 0;
-
     game_init();
-
-    set_timeout_max_period(MAX_TIMOUT_SECONDS);
 
     while (1) {
         pacer_wait();
 
-
-
         if (controls_tick >= control_max_ticks) {
-
             controls_update();
-
-            if (continue_button_event_p()) {
-                reset_game_choices(&our_choice_index, &our_choice, &their_choice);
-                reset_game_states(&wait_received_letter, &wait_chosen_letter);
-                interface_clear();
-                prev_char = 0;
-                prev_string = NULL;
-            }
-            if (wait_chosen_letter) {
-                cycle_choices(&our_choice_index, options_count);
-                our_choice = options[our_choice_index];
-                choose_letter(&wait_chosen_letter, our_choice);
-                if(!wait_chosen_letter) {
-                    interface_clear();
-                }
-            }
-
+            button_task(options, options_count);
             controls_tick = 0;
         }
 
-
-
-        // & timeout &
-        // wait for letter
-        if(ir_receiving_tick >= ir_receiving_max_ticks) {
-            if (wait_received_letter) {
-                receive_choice(&wait_received_letter, &their_choice, options, options_count);
-                if (ir_receiver_timeout(wait_received_letter)) {
-                    // restransmit...
-                }
-            }
-
-
-            ir_receiving_tick = 0;
+        if(ir_tick >= ir_max_ticks) {
+            ir_task(options, options_count);
+            ir_tick = 0;
         }
 
-
-
         if (interface_tick >= interface_max_ticks) {
-            if (wait_chosen_letter) {
-                if(our_choice != prev_char) {
-                    interface_display_character(our_choice);
-                    prev_char = our_choice;
-                }
-            } else {
-                if (wait_received_letter) {
-                    curr_string = WAITING;
-                } else {
-                    if (our_choice == their_choice) {
-                        curr_string = TIE;
-                    } else if (is_our_win(our_choice, their_choice)) {
-                        curr_string = WINNER;
-                        our_score++;
-                    } else {
-                        curr_string = LOSER;
-                        their_score++;
-                    }
-
-                }
-
-                if (strcmp(curr_string, prev_string) != 0) {
-                    interface_display_string(curr_string);
-                    prev_string = curr_string;
-                }
-
-            }
-
+            interface_task();
             interface_update();
             interface_tick = 0;
         }
 
         controls_tick++;
         interface_tick++;
-        ir_receiving_tick++;
+        ir_tick++;
 
     }
 }

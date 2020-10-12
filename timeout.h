@@ -6,6 +6,16 @@
 #ifndef TIMEOUT_H
 #define TIMEOUT_H
 
+/* The timeout values are in seconds*/
+#define IR_MAX_TIMEOUT 5
+#define SCORES_MAX_TIMEOUT 3
+
+typedef enum timeout_type {
+    IR_TIMEOUT,
+    EMPTY,
+} timeout_type_t;
+
+
 /** Used to determine whether or not the timeout was reached.
  *  @return true if the timeout has been reached. Otherwise false.*/
 bool timeout_reached(void);
@@ -24,12 +34,16 @@ bool timeout_is_running(void);
 
 
 /** Resets the timeout counter.*/
-void reset_timeout_counter(void);
+void clear_timeout_counter(void);
+
+
+/** Initizalises the IR timeout settings.*/
+void ir_receiver_timeout_init(void);
 
 
 /** IR receivers' timeout function.
  *  @return true if timeout reached and running. Otherwise false.*/
-bool ir_receiver_timeout(bool wait_received_letter);
+bool ir_receiver_timeout(void);
 
 
 /** Starts the timeout counter.*/
