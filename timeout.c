@@ -27,6 +27,10 @@ bool timeout_reached(void)
  *  wait for.*/
 void set_timeout_max_period(uint16_t timeout_seconds) {
     max_timeout_period = timeout_seconds * pacer_rate;
+/*
+    max_timeout_period = 5 * 300;
+*/
+
 }
 
 
@@ -67,9 +71,9 @@ void timeout_update(void)
 
 /** IR receivers' timeout function.
  *  @return true if timeout reached and running. Otherwise false.*/
-bool ir_receiver_timeout(bool* wait_received_letter)
+bool ir_receiver_timeout(bool wait_received_letter)
 {
-    if (!wait_received_letter) {
+    if (wait_received_letter) {
         if (timeout_is_running()) {
             if (timeout_reached()) {
                 return true;

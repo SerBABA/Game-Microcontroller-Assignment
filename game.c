@@ -17,7 +17,6 @@
 #define MAX_TIMOUT_SECONDS 5
 
 
-
 bool is_our_win(char our_choice, char their_choice)
 {
     if (our_choice == PAPER && their_choice == ROCK) {
@@ -91,7 +90,6 @@ int main (void)
 {
     char options[] = {PAPER, SCISSORS, ROCK};
     uint8_t options_count = 3;
-    set_timeout_max_period(MAX_TIMOUT_SECONDS);
 
     char* curr_string = NULL;
 
@@ -118,6 +116,8 @@ int main (void)
     uint8_t their_score = 0;
 
     game_init();
+
+    set_timeout_max_period(MAX_TIMOUT_SECONDS);
 
     while (1) {
         pacer_wait();
@@ -154,10 +154,12 @@ int main (void)
         if(ir_receiving_tick >= ir_receiving_max_ticks) {
             if (wait_received_letter) {
                 receive_choice(&wait_received_letter, &their_choice, options, options_count);
-                if (ir_receiver_timeout(&wait_received_letter)) {
-                    curr_string = "TEST";
+                if (ir_receiver_timeout(wait_received_letter)) {
+                    // restransmit...
                 }
             }
+
+
             ir_receiving_tick = 0;
         }
 

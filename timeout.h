@@ -29,7 +29,7 @@ void reset_timeout_counter(void);
 
 /** IR receivers' timeout function.
  *  @return true if timeout reached and running. Otherwise false.*/
-bool ir_receiver_timeout(bool* wait_received_letter);
+bool ir_receiver_timeout(bool wait_received_letter);
 
 
 /** Starts the timeout counter.*/
