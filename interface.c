@@ -11,19 +11,19 @@
 
 #define MESSAGE_RATE 10
 
-static int pacer_rate = 0;
+static uint16_t pacer_rate = 0;
 static tinygl_point_t pos;
 
 
 /** Initializes the display.
  *  @param new_pacer_rate is the pacer rate which is
  *         for initializing the tinygl module.*/
-void interface_init(int new_pacer_rate)
+void interface_init(uint16_t new_pacer_rate)
 {
     pacer_rate = new_pacer_rate;
     tinygl_init (pacer_rate);
     tinygl_font_set (&font5x7_1);
-    tinygl_text_mode_set(TINYGL_TEXT_MODE_SCROLL);    
+    tinygl_text_mode_set(TINYGL_TEXT_MODE_SCROLL);
     //~ tinygl_text_mode_set (TINYGL_TEXT_MODE_STEP);
     tinygl_text_speed_set (MESSAGE_RATE);
 }

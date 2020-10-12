@@ -27,7 +27,15 @@ bool timeout_reached(void)
  *  wait for.*/
 void set_timeout_max_period(uint16_t timeout_seconds) {
     max_timeout_period = timeout_seconds * pacer_rate;
-} 
+}
+
+
+/** Used to determine whether or not the timeout is running.
+ *  @return true if timout counter is running. Otherwise false.*/
+bool timeout_is_running(void)
+{
+    return run;
+}
 
 
 /** Resets the timeout counter.*/
@@ -56,6 +64,26 @@ void timeout_update(void)
 {
     timeout_tick++;
 }
+
+/** IR receivers' timeout function.
+ *  @return true if timeout reached and running. Otherwise false.*/
+bool ir_receiver_timeout(bool* wait_received_letter)
+{
+    if (!wait_received_letter) {
+        if (timeout_is_running()) {
+            if (timeout_reached()) {
+                return true;
+                reset_timeout_counter();
+            } else {
+                timeout_update();
+            }
+        } else {
+            start_timeout_counter();
+        }
+    }
+    return false;
+}
+
 
 
 /** Initializes the timeout module.

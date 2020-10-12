@@ -14,7 +14,7 @@
 #define CONTROLS_RATE 200
 #define IR_RECEIVING_RATE 300
 
-#define MAX_TIMOUT_SECONDS 20 
+#define MAX_TIMOUT_SECONDS 5
 
 
 
@@ -32,8 +32,6 @@ bool is_our_win(char our_choice, char their_choice)
 }
 
 
-
-
 void choose_letter(bool* wait_chosen_letter, char choice)
 {
     if (select_choice_push_event_p()) {
@@ -45,7 +43,7 @@ void choose_letter(bool* wait_chosen_letter, char choice)
 }
 
 
-void reset_game_choices(int* our_choice_index, char* our_choice, char* their_choice)
+void reset_game_choices(int8_t* our_choice_index, char* our_choice, char* their_choice)
 {
     *our_choice_index = 0;
     *our_choice = 0;
@@ -60,9 +58,9 @@ void reset_game_states(bool* wait_received_letter, bool* wait_chosen_letter)
 }
 
 
-void receive_choice(bool* wait_received_letter, char* their_choice, char options[], int options_count)
+void receive_choice(bool* wait_received_letter, char* their_choice, char options[], uint8_t options_count)
 {
-    static int i = 0;
+    static uint8_t i = 0;
 
     if (ir_uart_read_ready_p()) {
         *their_choice = ir_uart_getc();
@@ -80,6 +78,7 @@ void game_init(void)
 {
     system_init ();
     interface_init(INTERFACE_RATE);
+    timeout_init(IR_RECEIVING_RATE);
     controls_init();
     ir_uart_init();
     pacer_init (PACER_RATE);
@@ -91,7 +90,7 @@ void game_init(void)
 int main (void)
 {
     char options[] = {PAPER, SCISSORS, ROCK};
-    int options_count = 3;
+    uint8_t options_count = 3;
     set_timeout_max_period(MAX_TIMOUT_SECONDS);
 
     char* curr_string = NULL;
@@ -99,7 +98,7 @@ int main (void)
     char* prev_string = NULL;
     char prev_char = 0;
 
-    int our_choice_index = 0;
+    int8_t our_choice_index = 0;
     char our_choice = 0;
     char their_choice = 0;
     bool wait_chosen_letter = true;
@@ -141,7 +140,7 @@ int main (void)
                 our_choice = options[our_choice_index];
                 choose_letter(&wait_chosen_letter, our_choice);
                 if(!wait_chosen_letter) {
-                    interface_clear();             
+                    interface_clear();
                 }
             }
 
@@ -149,17 +148,18 @@ int main (void)
         }
 
 
+
         // & timeout &
         // wait for letter
         if(ir_receiving_tick >= ir_receiving_max_ticks) {
-
             if (wait_received_letter) {
                 receive_choice(&wait_received_letter, &their_choice, options, options_count);
+                if (ir_receiver_timeout(&wait_received_letter)) {
+                    curr_string = "TEST";
+                }
             }
             ir_receiving_tick = 0;
         }
-
-
 
 
 
@@ -191,12 +191,10 @@ int main (void)
                 }
 
             }
-            
+
             interface_update();
             interface_tick = 0;
         }
-
-
 
         controls_tick++;
         interface_tick++;

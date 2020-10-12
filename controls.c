@@ -54,7 +54,7 @@ void controls_update(void)
 /** Cycles between available options you can choose from.
  *  @param our_choice_index is the index within the avialble options range.
  *  @param options_count is the number of available options.*/
-void cycle_choices(int* our_choice_index, int options_count)
+void cycle_choices(int8_t* our_choice_index, uint8_t options_count)
 {
     if (cycle_up_event_p()) {
         *our_choice_index = (*our_choice_index+OPTIONS_INCREMENT) % options_count;

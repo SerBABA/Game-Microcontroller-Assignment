@@ -18,8 +18,18 @@ bool timeout_reached(void);
 void set_timeout_max_period(uint16_t timeout_seconds);
 
 
+/** Used to determine whether or not the timeout is running.
+ *  @return true if timout counter is running. Otherwise false.*/
+bool timeout_is_running(void);
+
+
 /** Resets the timeout counter.*/
 void reset_timeout_counter(void);
+
+
+/** IR receivers' timeout function.
+ *  @return true if timeout reached and running. Otherwise false.*/
+bool ir_receiver_timeout(bool* wait_received_letter);
 
 
 /** Starts the timeout counter.*/

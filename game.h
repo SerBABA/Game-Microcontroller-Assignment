@@ -2,15 +2,13 @@
 #define GAME_H
 
 
-#define PAPER 'P'
-#define SCISSORS 'S'
-#define ROCK 'R'
-
-
-#define TIE "Tie"
-#define WINNER "Winner"
-#define LOSER "Loser"
-#define WAITING "WAITING FOR OTHER PLAYER"
-#define WELCOME "WELCOME PRESS THE NAV DOWN TO START!!!"
+typedef enum game_state{
+    waiting_to_start,
+    selecting_option,
+    waiting_on_response,
+    showing_results,
+    scores,
+    reset,
+} game_state_t;
 
 #endif
