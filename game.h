@@ -30,9 +30,6 @@ bool is_our_win(char our_choice, char their_choice);
 void choose_letter(char choice);
 
 
-void receive_choice( const char options[], const uint8_t options_count);
-
-
 void button_task(const char options[], const uint8_t options_count);
 
 

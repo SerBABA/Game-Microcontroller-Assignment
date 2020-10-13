@@ -5,7 +5,6 @@
 */
 #ifndef INTERFACE_H
 #define INTERFACE_H
-#include "game.h"
 
 
 #define PAPER 'P'
@@ -23,6 +22,8 @@
 #define WAITING "WAITING"
 #define WELCOME "WELCOME PRESS THE BUTTON TO START!!!"
 
+#define GAME_LOSE "GOOD ATTEMPT YOU LOST THO!!"
+#define GAME_WIN "YOU WON!!! GOOD JOB!!!"
 
 /** Display a string on the display.
  *  @param string is the string you want to display.*/
@@ -48,6 +49,8 @@ void interface_init(uint16_t new_pacer_rate);
 
 /** Updates the display.*/
 void interface_update(void);
+
+char* interface_display_game_result(bool our_victory);
 
 
 #endif

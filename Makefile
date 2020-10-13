@@ -1,6 +1,6 @@
 # File:   Makefile
-# Author: M. P. Hayes, UCECE
-# Date:   12 Sep 2010
+# Author: Dan Ronen, Elvis Chen
+# Date:   14 October 2020
 # Descr:  Makefile for game
 
 # Definitions.
@@ -63,16 +63,19 @@ tinygl.o: ../../utils/tinygl.c ../../drivers/avr/system.h ../../drivers/display.
 
 controls.o: controls.c ../../drivers/button.h ../../drivers/navswitch.h ../../drivers/avr/system.h controls.h
 	$(CC) -c $(CFLAGS) $< -o $@
-	
+
 interface.o: interface.c ../../utils/tinygl.h ../../drivers/display.h ../../drivers/avr/system.h interface.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 timeout.o: timeout.c ../../drivers/avr/system.h timeout.h
 	$(CC) -c $(CFLAGS) $< -o $@
-	
+
+communications.o: communications.c ../../drivers/avr/system.h ../../drivers/avr/ir_uart.h timeout.h communications.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
 
 # Link: create ELF output file from object files.
-game.out: game.o ir_uart.o pio.o prescale.o button.o system.o timer.o timer0.o usart1.o display.o ledmat.o navswitch.o font.o pacer.o tinygl.o interface.o controls.o timeout.o
+game.out: game.o ir_uart.o pio.o prescale.o button.o system.o timer.o timer0.o usart1.o display.o ledmat.o navswitch.o font.o pacer.o tinygl.o interface.o controls.o timeout.o communications.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 

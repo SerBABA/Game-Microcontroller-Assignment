@@ -10,11 +10,10 @@
 #include "display.h"
 #include "../fonts/font5x7_1.h"
 #include "interface.h"
-#include "game.h"
 #include "timeout.h"
 
 
-#define MESSAGE_RATE 10
+#define MESSAGE_RATE 20
 
 static uint16_t pacer_rate = 0;
 static tinygl_point_t pos;
@@ -84,4 +83,28 @@ bool interface_set_character(char curr_char, char prev_char)
 }
 
 
+char* interface_display_round_result(uint8_t result)
+{
+    char* curr_string = NULL;
+
+    if (result == WIN_CODE) {
+        curr_string = WINNER;
+    } else if (result == LOSE_CODE) {
+        curr_string = LOSER;
+    } else if (result == TIE_CODE) {
+        curr_string = TIE;
+    } else {
+        curr_string = NULL;
+    }
+    return curr_string;
+}
+
+
+char* interface_display_game_result(bool our_victory)
+{
+    if (our_victory) {
+        return GAME_WIN;
+    }
+    return GAME_LOSE;
+}
 

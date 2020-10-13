@@ -8,22 +8,18 @@
 #include "interface.h"
 #include "controls.h"
 #include "timeout.h"
+#include "communications.h"
 
 #define PACER_RATE 1000
 #define INTERFACE_RATE 500
 #define CONTROLS_RATE 200
 #define IR_RECEIVING_RATE 300
 
+#define MAX_SCORE 3
 
 static state_data current_state_data = {
     WAITING_TO_START,
-    NULL,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
+    NULL, 0, 0, 0, 0, 0, 0
 };
 
 
@@ -50,22 +46,6 @@ void choose_letter(char choice)
 }
 
 
-void receive_choice( const char options[], const uint8_t options_count)
-{
-    uint8_t i = 0;
-
-    if (ir_uart_read_ready_p()) {
-        current_state_data.their_choice = ir_uart_getc();
-        for (i=0; i<options_count; i++) {
-            if (current_state_data.their_choice == options[i]) {
-                current_state_data.current_game_state = SHOWING_RESULTS;
-                return;
-            }
-        }
-    }
-}
-
-
 void button_task(const char options[], const uint8_t options_count)
 {
 
@@ -76,6 +56,10 @@ void button_task(const char options[], const uint8_t options_count)
         switch (current_state_data.current_game_state) {
         case WAITING_TO_START:
             current_state_data.current_game_state = SELECTING_CHOICE;
+            break;
+
+        case VICTORY_SCREEN:
+            current_state_data.current_game_state = WAITING_TO_START;
             break;
 
         default:
@@ -130,9 +114,20 @@ uint8_t round_result_code(void)
 }
 
 
+bool game_is_over(void)
+{
+    return current_state_data.our_score >= MAX_SCORE || current_state_data.their_score >= MAX_SCORE;
+}
+
+
+bool our_victory(void)
+{
+    return current_state_data.our_score >= MAX_SCORE;
+}
+
+
 void interface_task(void)
 {
-
     char* curr_string = NULL;
     char curr_char = 0;
     uint8_t result = 0;
@@ -153,7 +148,7 @@ void interface_task(void)
     case WAITING_ON_RESPONSE:
         curr_string = WAITING;
         // remove lower line
-        //current_state_data.current_game_state = SHOWING_RESULTS;
+        current_state_data.current_game_state = SHOWING_RESULTS;
         break;
 
     case SHOWING_RESULTS:
@@ -161,23 +156,21 @@ void interface_task(void)
         result = round_result_code();
 
         // remove lower line
-        //result = WIN_CODE;
+        result = WIN_CODE;
 
-        if (result == WIN_CODE) {
-            curr_string = WINNER;
-        } else if (result == LOSE_CODE) {
-            curr_string = LOSER;
-        } else if (result == TIE_CODE) {
-            curr_string = TIE;
-        }
+        curr_string = interface_display_round_result(result);
+        if (curr_string == NULL) {
+            current_state_data.current_game_state = RESET;
+        } else {
 
-        if (interface_transition(INTERFACE_RATE)) {
-            if (result == WIN_CODE) {
-                current_state_data.our_score++;
-            } else if (result == LOSE_CODE) {
-                current_state_data.their_score++;
+            if (interface_transition(INTERFACE_RATE)) {
+                if (result == WIN_CODE) {
+                    current_state_data.our_score++;
+                } else if (result == LOSE_CODE) {
+                    current_state_data.their_score++;
+                }
+                current_state_data.current_game_state = SHOWING_SCORES;
             }
-            current_state_data.current_game_state = SHOWING_SCORES;
         }
         break;
 
@@ -187,13 +180,32 @@ void interface_task(void)
         curr_char = current_state_data.our_score + '0';
 
         if (interface_transition(INTERFACE_RATE)) {
-            current_state_data.current_game_state = SELECTING_CHOICE;
+            if (game_is_over()) {
+                current_state_data.current_game_state = VICTORY_SCREEN;
+            } else {
+                current_state_data.current_game_state = SELECTING_CHOICE;
+            }
         }
         break;
 
-    default:
+    case VICTORY_SCREEN:
+
+        curr_string = interface_display_game_result(our_victory());
+
+        if (interface_transition(INTERFACE_RATE)) {
+            current_state_data.current_game_state = WAITING_TO_START;
+        }
+        break;
+
+    case RESET:
         curr_string = "ERROR HAS OCCURED";
+
+        if (interface_transition(INTERFACE_RATE)) {
+            reset_game();
+            current_state_data.current_game_state = WAITING_TO_START;
+        }
     }
+
 
     if (is_string) {
         if(interface_set_string(curr_string, current_state_data.prev_string)) {
@@ -210,13 +222,16 @@ void interface_task(void)
 
 void ir_task(const char options[], const uint8_t options_count)
 {
+    bool got_response = false;
+
     if (current_state_data.current_game_state == WAITING_ON_RESPONSE ||
             current_state_data.current_game_state == SELECTING_CHOICE) {
 
-        ir_receiver_timeout_init(IR_RECEIVING_RATE);
-        receive_choice(options, options_count);
-        if (ir_receiver_timeout()) {
-            ir_uart_putc(current_state_data.our_choice);
+        got_response = get_opponent_choice(current_state_data.their_choice,
+                                           current_state_data.our_choice, options,
+                                           options_count, IR_RECEIVING_RATE);
+        if (got_response) {
+            current_state_data.current_game_state = SHOWING_RESULTS;
         }
     }
 }
