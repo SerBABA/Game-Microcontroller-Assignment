@@ -5,6 +5,7 @@
 */
 #ifndef INTERFACE_H
 #define INTERFACE_H
+#include "game.h"
 
 
 #define PAPER 'P'
@@ -15,14 +16,21 @@
 #define TIE "Tie"
 #define WINNER "Winner"
 #define LOSER "Loser"
+#define TIE_CODE 2
+#define LOSE_CODE 1
+#define WIN_CODE 0
+
 #define WAITING "WAITING"
-#define WELCOME "WELCOME PRESS THE NAV DOWN TO START!!!"
+#define WELCOME "WELCOME PRESS THE BUTTON TO START!!!"
 
 
 /** Display a string on the display.
  *  @param string is the string you want to display.*/
 void interface_display_string(char string[]);
 
+bool interface_set_string(char* curr_string, char* prev_string);
+
+bool interface_set_character(char prev_char, char curr_char);
 
 /** Displays a single chracter on the display.
  *  @param character is the character you want to display.*/

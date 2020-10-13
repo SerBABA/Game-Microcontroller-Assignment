@@ -55,27 +55,71 @@ void start_timeout_counter(void)
 }
 
 
+
+bool interface_transition(uint16_t interface_rate)
+{
+    interface_delay_init(interface_rate);
+    if (interface_delay()) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
 /** Stops the timeout counter*/
 void stop_timeout_counter(void) {
     run = false;
 }
 
 
-/** Increments the timeout counter by one tick.*/
-void timeout_update(void)
+void interface_delay_init(uint16_t interface_rate)
 {
-    timeout_tick++;
+    if (current_timeout_type != INTERFACE_DELAY) {
+        clear_timeout_counter();
+        current_timeout_type = INTERFACE_DELAY;
+        pacer_rate = interface_rate;
+        set_timeout_max_period(INTERFACE_MAX_DELAY);
+        start_timeout_counter();
+    }
 }
 
 
-void ir_receiver_timeout_init(void)
+bool interface_delay(void)
+{
+    if (current_timeout_type == INTERFACE_DELAY) {
+        return timeout_update();
+    }
+    return false;
+}
+
+
+void ir_receiver_timeout_init(uint16_t ir_rate)
 {
     if (current_timeout_type != IR_TIMEOUT) {
         clear_timeout_counter();
         current_timeout_type = IR_TIMEOUT;
+        pacer_rate = ir_rate;
         set_timeout_max_period(IR_MAX_TIMEOUT);
         start_timeout_counter();
     }
+}
+
+
+bool timeout_update(void)
+{
+    if (timeout_is_running()) {
+        if (timeout_reached()) {
+            timeout_tick = 0;
+            clear_timeout_counter();
+            return true;
+        } else {
+            timeout_tick++;
+        }
+    } else {
+        start_timeout_counter();
+    }
+    return false;
 }
 
 /** IR receivers' timeout function.
@@ -83,20 +127,10 @@ void ir_receiver_timeout_init(void)
 bool ir_receiver_timeout(void)
 {
     if (current_timeout_type == IR_TIMEOUT) {
-        if (timeout_is_running()) {
-            if (timeout_reached()) {
-                timeout_tick = 0;
-                stop_timeout_counter();
-                return true;
-            } else {
-                timeout_update();
-            }
-        } else {
-            start_timeout_counter();
-        }
+        return timeout_update();
     }
-
     return false;
+
 }
 
 

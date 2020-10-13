@@ -15,13 +15,8 @@
 #define IR_RECEIVING_RATE 300
 
 
-/*
-static game_state_t current_game_state = WAITING_TO_START;
-*/
-
 static state_data current_state_data = {
-    SELECTING_CHOICE,
-    NULL,
+    WAITING_TO_START,
     NULL,
     0,
     0,
@@ -30,6 +25,7 @@ static state_data current_state_data = {
     0,
     0
 };
+
 
 bool is_our_win(char our_choice, char their_choice)
 {
@@ -54,18 +50,6 @@ void choose_letter(char choice)
 }
 
 
-void reset_game(void)
-{
-    current_state_data.current_game_state = SELECTING_CHOICE;
-    current_state_data.our_choice_index = 0;
-    current_state_data.our_choice = 0;
-    current_state_data.their_choice = 0;
-    current_state_data.prev_char = 0;
-    current_state_data.prev_string = NULL;
-    interface_clear();
-}
-
-
 void receive_choice( const char options[], const uint8_t options_count)
 {
     uint8_t i = 0;
@@ -82,17 +66,6 @@ void receive_choice( const char options[], const uint8_t options_count)
 }
 
 
-
-void game_init(void)
-{
-    system_init ();
-    interface_init(INTERFACE_RATE);
-    timeout_init(IR_RECEIVING_RATE);
-    controls_init();
-    ir_uart_init();
-    pacer_init (PACER_RATE);
-}
-
 void button_task(const char options[], const uint8_t options_count)
 {
 
@@ -100,12 +73,59 @@ void button_task(const char options[], const uint8_t options_count)
     char* our_choice = &current_state_data.our_choice;
 
     if (continue_button_event_p()) {
-        reset_game();
+        switch (current_state_data.current_game_state) {
+        case WAITING_TO_START:
+            current_state_data.current_game_state = SELECTING_CHOICE;
+            break;
+
+        default:
+            reset_game();
+        }
     }
+
     if (current_state_data.current_game_state == SELECTING_CHOICE) {
         cycle_choices(our_choice_index, options_count);
         *our_choice = options[*our_choice_index];
         choose_letter(*our_choice);
+    }
+
+}
+
+
+void game_init(void)
+{
+    system_init();
+    interface_init(INTERFACE_RATE);
+    timeout_init(IR_RECEIVING_RATE);
+    controls_init();
+    ir_uart_init();
+    pacer_init(PACER_RATE);
+}
+
+
+void reset_game(void)
+{
+    current_state_data.current_game_state = WAITING_TO_START;
+    current_state_data.our_choice_index = 0;
+    current_state_data.our_choice = 0;
+    current_state_data.their_choice = 0;
+    current_state_data.prev_char = 0;
+    current_state_data.prev_string = NULL;
+    interface_clear();
+}
+
+
+uint8_t round_result_code(void)
+{
+    char our_choice = current_state_data.our_choice;
+    char their_choice = current_state_data.their_choice;
+
+    if (our_choice == their_choice) {
+        return TIE_CODE;
+    } else if (is_our_win(our_choice, their_choice)) {
+        return WIN_CODE;
+    } else {
+        return LOSE_CODE;
     }
 }
 
@@ -113,60 +133,87 @@ void button_task(const char options[], const uint8_t options_count)
 void interface_task(void)
 {
 
-/*
-    char* our_choice = &current_state_data.our_choice;
-    char* their_choice = &current_state_data.their_choice;
-    char* prev_char = &current_state_data.prev_char;
-    char* curr_string = current_state_data.curr_string;
-    char* prev_string = current_state_data.prev_string;
-    uint8_t* our_score = &current_state_data.our_score;
-    uint8_t* their_score = &current_state_data.their_score;
-*/
+    char* curr_string = NULL;
+    char curr_char = 0;
+    uint8_t result = 0;
+    bool is_string = true;
 
     switch(current_state_data.current_game_state) {
 
-        case SELECTING_CHOICE:
+    case WAITING_TO_START:
+        curr_string = WELCOME;
+        break;
 
-            if(current_state_data.our_choice != current_state_data.prev_char) {
-                interface_display_character(current_state_data.our_choice);
-                current_state_data.prev_char = current_state_data.our_choice;
-            }
-            break;
 
-        case WAITING_ON_RESPONSE:
-            current_state_data.curr_string = WAITING;
-            break;
+    case SELECTING_CHOICE:
+        is_string = false;
+        curr_char = current_state_data.our_choice;
+        break;
 
-        case SHOWING_RESULTS:
-            if (current_state_data.our_choice == current_state_data.their_choice) {
-                current_state_data.curr_string = TIE;
-            } else if (is_our_win(current_state_data.our_choice, current_state_data.their_choice)) {
-                current_state_data.curr_string = WINNER;
-                current_state_data.our_score += 1;
-            } else {
-                current_state_data.curr_string = LOSER;
-                current_state_data.their_score += 1;
-            }
-            break;
+    case WAITING_ON_RESPONSE:
+        curr_string = WAITING;
+        // remove lower line
+        //current_state_data.current_game_state = SHOWING_RESULTS;
+        break;
 
-        default:
-            interface_display_string("ERROR");
+    case SHOWING_RESULTS:
 
+        result = round_result_code();
+
+        // remove lower line
+        //result = WIN_CODE;
+
+        if (result == WIN_CODE) {
+            curr_string = WINNER;
+        } else if (result == LOSE_CODE) {
+            curr_string = LOSER;
+        } else if (result == TIE_CODE) {
+            curr_string = TIE;
         }
 
-        if (strcmp(current_state_data.curr_string, current_state_data.prev_string) != 0) {
-            interface_display_string(current_state_data.curr_string);
-            current_state_data.prev_string = current_state_data.curr_string;
+        if (interface_transition(INTERFACE_RATE)) {
+            if (result == WIN_CODE) {
+                current_state_data.our_score++;
+            } else if (result == LOSE_CODE) {
+                current_state_data.their_score++;
+            }
+            current_state_data.current_game_state = SHOWING_SCORES;
         }
+        break;
+
+
+    case SHOWING_SCORES:
+        is_string = false;
+        curr_char = current_state_data.our_score + '0';
+
+        if (interface_transition(INTERFACE_RATE)) {
+            current_state_data.current_game_state = SELECTING_CHOICE;
+        }
+        break;
+
+    default:
+        curr_string = "ERROR HAS OCCURED";
+    }
+
+    if (is_string) {
+        if(interface_set_string(curr_string, current_state_data.prev_string)) {
+            current_state_data.prev_string = curr_string;
+        }
+    } else {
+        if(interface_set_character(curr_char, current_state_data.prev_char)) {
+            current_state_data.prev_char = curr_char;
+        }
+    }
 
 }
 
 
-
 void ir_task(const char options[], const uint8_t options_count)
 {
-    if (current_state_data.current_game_state == WAITING_ON_RESPONSE || current_state_data.current_game_state == SELECTING_CHOICE) {
-        ir_receiver_timeout_init();
+    if (current_state_data.current_game_state == WAITING_ON_RESPONSE ||
+            current_state_data.current_game_state == SELECTING_CHOICE) {
+
+        ir_receiver_timeout_init(IR_RECEIVING_RATE);
         receive_choice(options, options_count);
         if (ir_receiver_timeout()) {
             ir_uart_putc(current_state_data.our_choice);

@@ -8,10 +8,12 @@
 
 /* The timeout values are in seconds*/
 #define IR_MAX_TIMEOUT 5
-#define SCORES_MAX_TIMEOUT 3
+#define INTERFACE_MAX_DELAY 6
+
 
 typedef enum timeout_type {
     IR_TIMEOUT,
+    INTERFACE_DELAY,
     EMPTY,
 } timeout_type_t;
 
@@ -37,12 +39,11 @@ bool timeout_is_running(void);
 void clear_timeout_counter(void);
 
 
-/** Initizalises the IR timeout settings.*/
-void ir_receiver_timeout_init(void);
+
+void ir_receiver_timeout_init(uint16_t ir_rate);
 
 
-/** IR receivers' timeout function.
- *  @return true if timeout reached and running. Otherwise false.*/
+
 bool ir_receiver_timeout(void);
 
 
@@ -54,9 +55,15 @@ void start_timeout_counter(void);
 void stop_timeout_counter(void) ;
 
 
-/** Increments the timeout counter by one tick.*/
-void timeout_update(void);
+bool interface_transition(uint16_t interface_rate);
 
+bool timeout_update(void);
+
+
+void interface_delay_init(uint16_t interface_rate);
+
+
+bool interface_delay(void);
 
 /** Initializes the timeout module.
  *  @param new_pacer_rate is the pacer rate defined for the game.*/

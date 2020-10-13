@@ -3,11 +3,16 @@
  *  @date 8 October 2020
  *  @brief Interface Driver.
 */
+#include <string.h>
+
 #include "system.h"
 #include "tinygl.h"
 #include "display.h"
 #include "../fonts/font5x7_1.h"
 #include "interface.h"
+#include "game.h"
+#include "timeout.h"
+
 
 #define MESSAGE_RATE 10
 
@@ -24,7 +29,6 @@ void interface_init(uint16_t new_pacer_rate)
     tinygl_init (pacer_rate);
     tinygl_font_set (&font5x7_1);
     tinygl_text_mode_set(TINYGL_TEXT_MODE_SCROLL);
-    //~ tinygl_text_mode_set (TINYGL_TEXT_MODE_STEP);
     tinygl_text_speed_set (MESSAGE_RATE);
 }
 
@@ -56,3 +60,28 @@ void interface_display_string(char string[])
 {
     tinygl_text(string);
 }
+
+bool interface_set_string(char* curr_string, char* prev_string)
+{
+    if (strcmp(curr_string, prev_string) != 0) {
+        interface_clear();
+        interface_display_string(curr_string);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool interface_set_character(char curr_char, char prev_char)
+{
+    if(curr_char != prev_char) {
+        interface_clear();
+        interface_display_character(curr_char);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+
