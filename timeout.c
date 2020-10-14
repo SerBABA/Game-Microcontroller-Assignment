@@ -8,6 +8,8 @@
 #include "system.h"
 #include "timeout.h"
 
+#define MAX_PERIOD_TIMEOUT 10
+
 static bool run = false;
 static uint16_t timeout_tick = 0;
 static uint16_t max_timeout_period = 0;
@@ -100,9 +102,8 @@ void ir_receiver_timeout_init(uint16_t ir_rate)
     if (current_timeout_type != IR_TIMEOUT) {
         clear_timeout_counter();
         current_timeout_type = IR_TIMEOUT;
-        pacer_rate = ir_rate;
-        
-        set_timeout_max_period(rand() % 10);
+        pacer_rate = ir_rate;        
+        set_timeout_max_period(rand() % MAX_PERIOD_TIMEOUT);
         start_timeout_counter();
     }
 }

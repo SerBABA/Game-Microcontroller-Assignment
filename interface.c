@@ -4,7 +4,6 @@
  *  @brief Interface Driver.
 */
 #include <string.h>
-
 #include "system.h"
 #include "tinygl.h"
 #include "display.h"
@@ -12,12 +11,12 @@
 #include "interface.h"
 #include "timeout.h"
 
+// Defines the rate at which the message goes through the screen.
+#define MESSAGE_RATE 20 
 
-#define MESSAGE_RATE 20
-
-static uint16_t pacer_rate = 0;
-static tinygl_point_t pos;
-
+static uint16_t pacer_rate = 0; // The rate that the timeout functions are called.
+static tinygl_point_t pos;      // This is needed for displaying character, such that we don't
+                                // have flickering.
 
 /** Initializes the display.
  *  @param new_pacer_rate is the pacer rate which is
@@ -32,6 +31,7 @@ void interface_init(uint16_t new_pacer_rate)
 }
 
 
+/** Clears the interface elements.*/
 void interface_clear(void)
 {
     tinygl_clear();
@@ -60,6 +60,8 @@ void interface_display_string(char string[])
     tinygl_text(string);
 }
 
+
+/** */
 bool interface_set_string(char* curr_string, char* prev_string)
 {
     if (strcmp(curr_string, prev_string) != 0) {
@@ -71,6 +73,8 @@ bool interface_set_string(char* curr_string, char* prev_string)
     }
 }
 
+
+/** */
 bool interface_set_character(char curr_char, char prev_char)
 {
     if(curr_char != prev_char) {
@@ -83,6 +87,7 @@ bool interface_set_character(char curr_char, char prev_char)
 }
 
 
+/** */
 char* interface_display_round_result(uint8_t result)
 {
     char* curr_string = NULL;
@@ -100,6 +105,7 @@ char* interface_display_round_result(uint8_t result)
 }
 
 
+/** */
 char* interface_display_game_result(bool our_victory)
 {
     if (our_victory) {

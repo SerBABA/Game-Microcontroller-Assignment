@@ -25,18 +25,4 @@ typedef struct state_data_s {
 } state_data;
 
 
-bool is_our_win(char our_choice, char their_choice);
-
-
-void choose_letter(char choice);
-
-
-void button_task(const char options[], const uint8_t options_count);
-
-
-void game_init(void);
-
-
-void reset_game(void);
-
 #endif

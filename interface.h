@@ -21,9 +21,9 @@
 
 #define WAITING "WAITING"
 #define WELCOME "WELCOME PRESS THE BUTTON TO START!!!"
-
-#define GAME_LOSE "GOOD ATTEMPT YOU LOST THO!!"
-#define GAME_WIN "YOU WON!!! GOOD JOB!!!"
+#define RESETTING "RESETTING"
+#define GAME_LOSE "NICE TRY L!"
+#define GAME_WIN "VICTORY!"
 
 /** Display a string on the display.
  *  @param string is the string you want to display.*/
