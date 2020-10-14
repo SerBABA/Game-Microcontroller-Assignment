@@ -7,7 +7,6 @@
 #define TIMEOUT_H
 
 /* The timeout values are in seconds*/
-#define IR_MAX_TIMEOUT 5
 #define INTERFACE_MAX_DELAY 6
 
 

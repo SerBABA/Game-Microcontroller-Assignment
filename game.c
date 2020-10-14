@@ -36,19 +36,19 @@ bool is_our_win(char our_choice, char their_choice)
 }
 
 
-void choose_letter(char choice)
+bool choose_letter(char choice)
 {
     if (select_choice_push_event_p() && ir_uart_write_ready_p()) {
         ir_uart_putc(choice);
-        current_state_data.current_game_state = WAITING_ON_RESPONSE;
         interface_clear();
+        return true;
     }
+    return false;
 }
 
 
 void button_task(const char options[], const uint8_t options_count)
 {
-
     int8_t* our_choice_index = &current_state_data.our_choice_index;
     char* our_choice = &current_state_data.our_choice;
 
@@ -56,6 +56,14 @@ void button_task(const char options[], const uint8_t options_count)
         switch (current_state_data.current_game_state) {
         case WAITING_TO_START:
             current_state_data.current_game_state = SELECTING_CHOICE;
+            break;
+
+        case SELECTING_CHOICE:
+            cycle_choices(our_choice_index, options_count);
+            *our_choice = options[*our_choice_index];
+            if (choose_letter(*our_choice) ) {
+                current_state_data.current_game_state = WAITING_ON_RESPONSE;            
+            }
             break;
 
         case VICTORY_SCREEN:
@@ -66,13 +74,6 @@ void button_task(const char options[], const uint8_t options_count)
             reset_game();
         }
     }
-
-    if (current_state_data.current_game_state == SELECTING_CHOICE) {
-        cycle_choices(our_choice_index, options_count);
-        *our_choice = options[*our_choice_index];
-        choose_letter(*our_choice);
-    }
-
 }
 
 
@@ -97,18 +98,17 @@ void reset_game(void)
     current_state_data.prev_char = 0;
     current_state_data.prev_string = NULL;
     current_state_data.got_response = false;
+    current_state_data.our_score = 0;
+    current_state_data.their_score = 0;
     interface_clear();
 }
 
 
 uint8_t round_result_code(void)
 {
-    char our_choice = current_state_data.our_choice;
-    char their_choice = current_state_data.their_choice;
-
-    if (our_choice == their_choice) {
+    if (current_state_data.our_choice == current_state_data.their_choice) {
         return TIE_CODE;
-    } else if (is_our_win(our_choice, their_choice)) {
+    } else if (is_our_win(current_state_data.our_choice, current_state_data.their_choice)) {
         return WIN_CODE;
     } else {
         return LOSE_CODE;
@@ -178,6 +178,7 @@ void interface_task(void)
         curr_char = current_state_data.our_score + '0';
 
         if (interface_transition(INTERFACE_RATE)) {
+            clear_ir_buffer();
             if (game_is_over()) {
                 current_state_data.current_game_state = VICTORY_SCREEN;
             } else {
@@ -191,7 +192,7 @@ void interface_task(void)
         curr_string = interface_display_game_result(our_victory());
         
         if (interface_transition(INTERFACE_RATE)) {
-            current_state_data.current_game_state = WAITING_TO_START;
+            reset_game();
         }
         break;
 
@@ -200,7 +201,6 @@ void interface_task(void)
 
         if (interface_transition(INTERFACE_RATE)) {
             reset_game();
-            current_state_data.current_game_state = WAITING_TO_START;
         }
     }
 
@@ -228,6 +228,7 @@ void ir_task(const char options[], const uint8_t options_count)
         current_state_data.got_response = false;
         clear_ir_buffer();
         current_state_data.current_game_state = SHOWING_RESULTS;
+        ir_uart_putc(current_state_data.our_choice);
     
     } else if (!got_response){
 

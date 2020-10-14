@@ -18,10 +18,12 @@ bool is_valid_option(char choice, const char options[], const uint8_t options_co
     return false;
 }
 
+
 void communications_init(uint16_t update_rate)
 {
     ir_receiver_rate = update_rate;
 }
+
 
 void clear_ir_buffer(void)
 {
@@ -32,6 +34,7 @@ void clear_ir_buffer(void)
         }
     }
 }
+
 
 bool ir_recev_choice(char* their_choice, const char options[], const uint8_t options_count)
 {

@@ -4,6 +4,7 @@
  *  @brief Provides timeout capabilities.
  * */
 #include <stdbool.h>
+#include <stdlib.h>
 #include "system.h"
 #include "timeout.h"
 
@@ -100,7 +101,8 @@ void ir_receiver_timeout_init(uint16_t ir_rate)
         clear_timeout_counter();
         current_timeout_type = IR_TIMEOUT;
         pacer_rate = ir_rate;
-        set_timeout_max_period(IR_MAX_TIMEOUT);
+        
+        set_timeout_max_period(rand() % 10);
         start_timeout_counter();
     }
 }
