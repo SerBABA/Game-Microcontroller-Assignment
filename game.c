@@ -19,7 +19,7 @@
 
 static state_data current_state_data = {
     WAITING_TO_START,
-    NULL, 0, 0, 0, 0, 0, 0
+    NULL, 0, 0, 0, 0, 0, 0, false,
 };
 
 
@@ -80,7 +80,8 @@ void game_init(void)
 {
     system_init();
     interface_init(INTERFACE_RATE);
-    timeout_init(IR_RECEIVING_RATE);
+    timeout_init(PACER_RATE);
+    communications_init(IR_RECEIVING_RATE);
     controls_init();
     ir_uart_init();
     pacer_init(PACER_RATE);
@@ -148,7 +149,7 @@ void interface_task(void)
     case WAITING_ON_RESPONSE:
         curr_string = WAITING;
         // remove lower line
-        current_state_data.current_game_state = SHOWING_RESULTS;
+        //current_state_data.current_game_state = SHOWING_RESULTS;
         break;
 
     case SHOWING_RESULTS:
@@ -156,7 +157,7 @@ void interface_task(void)
         result = round_result_code();
 
         // remove lower line
-        result = WIN_CODE;
+        //result = WIN_CODE;
 
         curr_string = interface_display_round_result(result);
         if (curr_string == NULL) {
@@ -222,17 +223,20 @@ void interface_task(void)
 
 void ir_task(const char options[], const uint8_t options_count)
 {
-    bool got_response = false;
+    bool got_response = current_state_data.got_response;
 
-    if (current_state_data.current_game_state == WAITING_ON_RESPONSE ||
-            current_state_data.current_game_state == SELECTING_CHOICE) {
+    if (got_response && current_state_data.current_game_state == WAITING_ON_RESPONSE) {
+        current_state_data.current_game_state = SHOWING_RESULTS;
+    } else {
 
-        got_response = get_opponent_choice(current_state_data.their_choice,
-                                           current_state_data.our_choice, options,
-                                           options_count, IR_RECEIVING_RATE);
-        if (got_response) {
-            current_state_data.current_game_state = SHOWING_RESULTS;
+        if (current_state_data.current_game_state == SELECTING_CHOICE) {
+            got_response = ir_recev_choice(&current_state_data.their_choice , options, options_count);
+
+        }else if (current_state_data.current_game_state == WAITING_ON_RESPONSE) {
+            got_response = ir_recev_choice_and_timeout(&current_state_data.their_choice, current_state_data.our_choice, options, options_count);
         }
+
+        current_state_data.got_response = got_response;
     }
 }
 

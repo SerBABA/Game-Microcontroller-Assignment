@@ -21,6 +21,7 @@ typedef struct state_data_s {
     char our_choice;
     char their_choice;
     int8_t our_choice_index;
+    bool got_response;
 } state_data;
 
 

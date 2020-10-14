@@ -51,6 +51,7 @@ void interface_init(uint16_t new_pacer_rate);
 void interface_update(void);
 
 char* interface_display_game_result(bool our_victory);
+char* interface_display_round_result(uint8_t result);
 
 
 #endif
