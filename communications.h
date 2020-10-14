@@ -10,5 +10,6 @@ bool ir_recev_choice(char* their_choice, const char options[], const uint8_t opt
 
 bool ir_recev_choice_and_timeout(char* their_choice, char our_choice, const char options[], const uint8_t options_count);
 
+void clear_ir_buffer(void);
 
 #endif

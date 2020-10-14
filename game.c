@@ -29,7 +29,7 @@ bool is_our_win(char our_choice, char their_choice)
         return true;
     } else if (our_choice == ROCK && their_choice == SCISSORS) {
         return true;
-    } else if (their_choice == PAPER) {
+    } else if (our_choice == SCISSORS && their_choice == PAPER) {
         return true;
     }
     return false;
@@ -38,7 +38,7 @@ bool is_our_win(char our_choice, char their_choice)
 
 void choose_letter(char choice)
 {
-    if (select_choice_push_event_p()) {
+    if (select_choice_push_event_p() && ir_uart_write_ready_p()) {
         ir_uart_putc(choice);
         current_state_data.current_game_state = WAITING_ON_RESPONSE;
         interface_clear();
@@ -96,6 +96,7 @@ void reset_game(void)
     current_state_data.their_choice = 0;
     current_state_data.prev_char = 0;
     current_state_data.prev_string = NULL;
+    current_state_data.got_response = false;
     interface_clear();
 }
 
@@ -148,16 +149,11 @@ void interface_task(void)
 
     case WAITING_ON_RESPONSE:
         curr_string = WAITING;
-        // remove lower line
-        //current_state_data.current_game_state = SHOWING_RESULTS;
         break;
 
     case SHOWING_RESULTS:
 
         result = round_result_code();
-
-        // remove lower line
-        //result = WIN_CODE;
 
         curr_string = interface_display_round_result(result);
         if (curr_string == NULL) {
@@ -171,6 +167,7 @@ void interface_task(void)
                     current_state_data.their_score++;
                 }
                 current_state_data.current_game_state = SHOWING_SCORES;
+                current_state_data.got_response = false;
             }
         }
         break;
@@ -192,7 +189,7 @@ void interface_task(void)
     case VICTORY_SCREEN:
 
         curr_string = interface_display_game_result(our_victory());
-
+        
         if (interface_transition(INTERFACE_RATE)) {
             current_state_data.current_game_state = WAITING_TO_START;
         }
@@ -223,11 +220,16 @@ void interface_task(void)
 
 void ir_task(const char options[], const uint8_t options_count)
 {
+
     bool got_response = current_state_data.got_response;
 
     if (got_response && current_state_data.current_game_state == WAITING_ON_RESPONSE) {
+        current_state_data.prev_string = NULL;
+        current_state_data.got_response = false;
+        clear_ir_buffer();
         current_state_data.current_game_state = SHOWING_RESULTS;
-    } else {
+    
+    } else if (!got_response){
 
         if (current_state_data.current_game_state == SELECTING_CHOICE) {
             got_response = ir_recev_choice(&current_state_data.their_choice , options, options_count);
@@ -235,9 +237,11 @@ void ir_task(const char options[], const uint8_t options_count)
         }else if (current_state_data.current_game_state == WAITING_ON_RESPONSE) {
             got_response = ir_recev_choice_and_timeout(&current_state_data.their_choice, current_state_data.our_choice, options, options_count);
         }
-
+        
         current_state_data.got_response = got_response;
     }
+
+    
 }
 
 
