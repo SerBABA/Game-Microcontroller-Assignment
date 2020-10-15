@@ -1,6 +1,5 @@
-
-PAPER, SCISSORS, ROCK - 15 October 2020 \n
-Dan Ronen, Elvis Chen\n
+PAPER, SCISSORS, ROCK - 15 October 2020 
+Dan Ronen, Elvis Chen
 
 Installation (assuming you already have the ence260 UCFK4 package installed):
     - navigate to the /assignment folder
