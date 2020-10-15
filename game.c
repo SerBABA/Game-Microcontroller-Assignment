@@ -8,15 +8,44 @@
 #include "controls.h"
 #include "timeout.h"
 #include "communications.h"
+
+//  
 #define PACER_RATE 1000
+//
 #define INTERFACE_RATE 500
+//
 #define CONTROLS_RATE 200
+//
 #define IR_RECEIVING_RATE 300
+//
 #define MAX_SCORE 3
+//
+#define BASE_OUR_CHOICE_INDEX 0
+//
+#define BASE_OUR_CHOICE 0
+//
+#define BASE_THEIR_CHOICE 0
+//
+#define BASE_PREV_CHAR 0
+//
+#define BASE_PREV_STRING NULL
+//
+#define BASE_GOT_RESPONSE false
+//
+#define BASE_OUR_SCORE 0
+//
+#define BASE_THEIR_SCORE 0
 
 static state_data current_state_data = {
     WAITING_TO_START,
-    NULL, 0, 0, 0, 0, 0, 0, false,
+    BASE_PREV_STRING,
+    BASE_PREV_CHAR,
+    BASE_OUR_SCORE,
+    BASE_THEIR_SCORE,
+    BASE_OUR_CHOICE,
+    BASE_THEIR_CHOICE,
+    BASE_OUR_CHOICE_INDEX,
+    BASE_GOT_RESPONSE,
 };
 
 
@@ -35,14 +64,14 @@ static void game_init(void)
 static void reset_game(void)
 {
     current_state_data.current_game_state = WAITING_TO_START;
-    current_state_data.our_choice_index = 0;
-    current_state_data.our_choice = 0;
-    current_state_data.their_choice = 0;
-    current_state_data.prev_char = 0;
-    current_state_data.prev_string = NULL;
-    current_state_data.got_response = false;
-    current_state_data.our_score = 0;
-    current_state_data.their_score = 0;
+    current_state_data.our_choice_index = BASE_OUR_CHOICE_INDEX;
+    current_state_data.our_choice = BASE_OUR_CHOICE;
+    current_state_data.their_choice = BASE_THEIR_CHOICE;
+    current_state_data.prev_char = BASE_PREV_CHAR;
+    current_state_data.prev_string = BASE_PREV_STRING;
+    current_state_data.got_response = BASE_GOT_RESPONSE;
+    current_state_data.our_score = BASE_OUR_SCORE;
+    current_state_data.their_score = BASE_THEIR_SCORE;
     interface_clear();
 }
 

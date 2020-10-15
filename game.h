@@ -1,7 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-
+// This is used to keep track of the current game state.
 typedef enum game_state{
     WAITING_TO_START,
     SELECTING_CHOICE,
@@ -12,6 +12,8 @@ typedef enum game_state{
     VICTORY_SCREEN,
 } game_state_t;
 
+
+// This is used to store all the current state data.
 typedef struct state_data_s {
     game_state_t current_game_state;
     char* prev_string;

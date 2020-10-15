@@ -15,6 +15,7 @@
 #define MESSAGE_RATE 20 
 
 static uint16_t pacer_rate = 0; // The rate that the timeout functions are called.
+
 static tinygl_point_t pos;      // This is needed for displaying character, such that we don't
                                 // have flickering.
 
@@ -61,12 +62,15 @@ void interface_display_string(char string[])
 }
 
 
-/** */
+/** Sets the string we want to display on the screen.
+ *  @param curr_string (current string) is the new string we want to display. or the current one.
+ *  @param prev_string (previous string) is the string that is already displaying on the screen.
+ *  @return true if the interface has updated. Otherwise false.*/
 bool interface_set_string(char* curr_string, char* prev_string)
 {
-    if (strcmp(curr_string, prev_string) != 0) {
-        interface_clear();
-        interface_display_string(curr_string);
+    if (strcmp(curr_string, prev_string) != 0) {    // This compares the previous string and
+        interface_clear();                          // the current (new) string, which if they
+        interface_display_string(curr_string);      // differ we need to update the display.
         return true;
     } else {
         return false;
@@ -74,12 +78,15 @@ bool interface_set_string(char* curr_string, char* prev_string)
 }
 
 
-/** */
+/** Sets the character to display on the screen.
+ *  @param curr_char (current character) is the current (new) string we want to display.
+ *  @param prev_char (previous character) is the previously set character on the screen.
+ *  @return true if the interface was updated. Otherwise false.*/
 bool interface_set_character(char curr_char, char prev_char)
 {
-    if(curr_char != prev_char) {
-        interface_clear();
-        interface_display_character(curr_char);
+    if(curr_char != prev_char) {                // This is similar to the interface_set_string()
+        interface_clear();                      // function, which only displays the new character
+        interface_display_character(curr_char); // if it different then the last character.
         return true;
     } else {
         return false;
@@ -87,7 +94,10 @@ bool interface_set_character(char curr_char, char prev_char)
 }
 
 
-/** */
+/** This returns the curr_string, which describes the correct round result.
+ *  @param result is the round result code.
+ *  @return a pointer to the string that associated with that result code. 
+ *  If it is unknown we return null.*/
 char* interface_display_round_result(uint8_t result)
 {
     char* curr_string = NULL;
@@ -105,7 +115,23 @@ char* interface_display_round_result(uint8_t result)
 }
 
 
-/** */
+/** This is used to delay the transition between states
+ *  @param interface_rate is the rate at which the function is called.
+ *  @return true if the transition should occur. Otherwise false.*/
+bool interface_transition(uint16_t interface_rate)
+{
+    interface_delay_init(interface_rate);
+    if (interface_delay()) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+/** Gets the pointer to the correct game result. Depending if you won or not.
+ *  @param our_victory defines if we won the game or the other player won.
+ *  @return the character pointer to the correct game result string.*/
 char* interface_display_game_result(bool our_victory)
 {
     if (our_victory) {

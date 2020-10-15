@@ -9,7 +9,9 @@
 #include "navswitch.h"
 #include "controls.h"
 
+// This defines the lower bound of the index range.
 #define LOWER_INDEX_BOUND 0
+// This defines how much we increment each time we cycle through our options.
 #define OPTIONS_INCREMENT 1
 
 /** Has the cycle up option has been pressed.
@@ -59,8 +61,8 @@ void cycle_choices(int8_t* our_choice_index, uint8_t options_count)
     if (cycle_up_event_p()) {
         *our_choice_index = (*our_choice_index+OPTIONS_INCREMENT) % options_count;
 
-    } else if (cycle_down_event_p()) {
-        *our_choice_index -= OPTIONS_INCREMENT;
+    } else if (cycle_down_event_p()) {                  // Depending on the direction chosen 
+        *our_choice_index -= OPTIONS_INCREMENT;         // the index will increment in that direction
         if (*our_choice_index < LOWER_INDEX_BOUND) {
             *our_choice_index += options_count;
         }

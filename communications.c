@@ -74,8 +74,8 @@ bool ir_recev_choice(char* their_choice, const char options[], const uint8_t opt
  *  @return true if the IR received a choice and it is a valid option. Otherwise false.*/
 bool ir_recev_choice_and_timeout(char* their_choice, char our_choice, const char options[], const uint8_t options_count)
 {
-    ir_receiver_timeout_init(ir_receiver_rate);
-    if (ir_recev_choice(their_choice, options, options_count)) {
+    ir_receiver_timeout_init(ir_receiver_rate);                     // Initiates the timeout, which will only send our choice out
+    if (ir_recev_choice(their_choice, options, options_count)) {    // once it reaches the timeout and then sends our message again.
         return true;
     } else if (ir_receiver_timeout() && ir_uart_write_ready_p()) {
         ir_uart_putc(our_choice);
