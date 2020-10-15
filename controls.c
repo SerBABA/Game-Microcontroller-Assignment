@@ -16,7 +16,7 @@
 
 /** Has the cycle up option has been pressed.
  *  @return true if the cycle up option was chosen. Otherwise false.*/
-bool cycle_up_event_p(void)
+static bool cycle_up_event_p(void)
 {
     return navswitch_push_event_p (NAVSWITCH_NORTH);
 }
@@ -24,7 +24,7 @@ bool cycle_up_event_p(void)
 
 /** Has the cycle down option has been pressed.
  *  @return true if the cycle down option was chosen. Otherwise false.*/
-bool cycle_down_event_p(void)
+static bool cycle_down_event_p(void)
 {
     return navswitch_push_event_p (NAVSWITCH_SOUTH);
 }
@@ -61,7 +61,7 @@ void cycle_choices(int8_t* our_choice_index, uint8_t options_count)
     if (cycle_up_event_p()) {
         *our_choice_index = (*our_choice_index+OPTIONS_INCREMENT) % options_count;
 
-    } else if (cycle_down_event_p()) {                  // Depending on the direction chosen 
+    } else if (cycle_down_event_p()) {                  // Depending on the direction chosen
         *our_choice_index -= OPTIONS_INCREMENT;         // the index will increment in that direction
         if (*our_choice_index < LOWER_INDEX_BOUND) {
             *our_choice_index += options_count;

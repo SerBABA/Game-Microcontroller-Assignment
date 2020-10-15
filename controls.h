@@ -7,15 +7,6 @@
 #define CONTROLS_H
 
 
-/** Has the cycle up option has been pressed.
- *  @return true if the cycle up option was chosen. Otherwise false.*/
-bool cycle_up_event_p(void);
-
-/** Has the cycle down option has been pressed.
- *  @return true if the cycle down option was chosen. Otherwise false.*/
-bool cycle_down_event_p(void);
-
-
 /** has the continue button been pressed.
  *  @return true if the continue button was pressed.*/
 bool continue_button_event_p (void);

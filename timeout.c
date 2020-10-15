@@ -29,7 +29,7 @@ static timeout_type_t current_timeout_type = EMPTY;
 
 /** Used to determine whether or not the timeout was reached.
  *  @return true if the timeout has been reached. Otherwise false.*/
-bool timeout_reached(void)
+static bool timeout_reached(void)
 {
     return timeout_tick >= current_timeout_period;
 }
@@ -45,28 +45,28 @@ static void stop_timeout_counter(void) {
  *  to wait for.
  *  @param timeout_seconds is the new current_timeout_period (in seconds) we want to
  *  wait for.*/
-void set_current_timeout_period(uint16_t timeout_seconds) {
+static void set_current_timeout_period(uint16_t timeout_seconds) {
     current_timeout_period = timeout_seconds * timeout_rate;
 }
 
 
 /** Used to determine whether or not the timeout is running.
  *  @return true if timout counter is running. Otherwise false.*/
-bool timeout_is_running(void)
+static bool timeout_is_running(void)
 {
     return run;
 }
 
 
 /** Starts the timeout counter.*/
-void start_timeout_counter(void)
+static void start_timeout_counter(void)
 {
     run = true;
 }
 
 
 /** Resets the timeout counter.*/
-void clear_timeout_counter(void)
+static void clear_timeout_counter(void)
 {
     timeout_tick = BASE_TICK_VALUE;
     stop_timeout_counter();
@@ -85,12 +85,12 @@ void interface_delay_init(uint16_t interface_rate)
         set_current_timeout_period(INTERFACE_MAX_DELAY);
         start_timeout_counter();
     }
-}                                                            
-                                                                    
+}
+
 
 /** This is timeout updating the tick.
  *  @return true if the timeout has been reached. Otherwise false.*/
-bool timeout_update(void)
+static bool timeout_update(void)
 {
     if (timeout_is_running()) {
         if (timeout_reached()) {        // Once the timeout is reached.
@@ -123,12 +123,12 @@ void ir_receiver_timeout_init(uint16_t ir_rate)
 {
     if (current_timeout_type != IR_TIMEOUT) {
         clear_timeout_counter();
-        current_timeout_type = IR_TIMEOUT;                          // The period is randomised in order to make sure we don't    
+        current_timeout_type = IR_TIMEOUT;                          // The period is randomised in order to make sure we don't
         timeout_rate = ir_rate;                                     // keep sending and expecting to receive at the same time.
         set_current_timeout_period(rand() % MAX_PERIOD_TIMEOUT);    // It appears that it is a half-duplex system which shares
-        start_timeout_counter();                                    // the buffer with the sending and receiving of data over IR.   
+        start_timeout_counter();                                    // the buffer with the sending and receiving of data over IR.
     }                                                               // This is my assumption at least.
-}       
+}
 
 /** IR receivers' timeout function.
  *  @return true if timeout reached and running. Otherwise false.*/

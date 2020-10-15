@@ -12,7 +12,7 @@
 #include "timeout.h"
 
 // Defines the rate at which the message goes through the screen.
-#define MESSAGE_RATE 20 
+#define MESSAGE_RATE 20
 
 static uint16_t pacer_rate = 0; // The rate that the timeout functions are called.
 
@@ -48,7 +48,7 @@ void interface_update(void)
 
 /** Displays a single chracter on the display.
  *  @param character is the character you want to display.*/
-void interface_display_character(char character)
+static void interface_display_character(char character)
 {
     tinygl_draw_char(character, pos);
 }
@@ -56,7 +56,7 @@ void interface_display_character(char character)
 
 /** Display a string on the display.
  *  @param string is the string you want to display.*/
-void interface_display_string(char string[])
+static void interface_display_string(char string[])
 {
     tinygl_text(string);
 }
@@ -96,7 +96,7 @@ bool interface_set_character(char curr_char, char prev_char)
 
 /** This returns the curr_string, which describes the correct round result.
  *  @param result is the round result code.
- *  @return a pointer to the string that associated with that result code. 
+ *  @return a pointer to the string that associated with that result code.
  *  If it is unknown we return null.*/
 char* interface_display_round_result(uint8_t result)
 {

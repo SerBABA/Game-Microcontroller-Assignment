@@ -15,7 +15,7 @@ static uint16_t ir_receiver_rate = 0; // This is used to store the rate at which
  *  @param options is a list of character options to choose from.
  *  @param options_count is the number of options available.
  *  @return true if the options is within the options array. Otherwise false.*/
-bool is_valid_option(char choice, const char options[], const uint8_t options_count)
+static bool is_valid_option(char choice, const char options[], const uint8_t options_count)
 {
     uint8_t i = 0;
 

@@ -1,3 +1,8 @@
+/** @file game.h
+ *  @author Dan Ronen, Elvis Chen
+ *  @date 15 October 2020
+ *  @brief This is the main game file.
+ * */
 #ifndef GAME_H
 #define GAME_H
 

@@ -6,28 +6,35 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-
+// This defines the PAPER character
 #define PAPER 'P'
+// This defines the SCISSORS character
 #define SCISSORS 'S'
+// This defines the ROCK character
 #define ROCK 'R'
-
-
+// This defines the round TIE message string
 #define TIE "Tie"
+// This defines the round WINNER message string
 #define WINNER "Winner"
+// This defines the round LOSER message string
 #define LOSER "Loser"
+// This defines the code used for a round tie
 #define TIE_CODE 2
+// This defines the code used for a round lose
 #define LOSE_CODE 1
+// This defines the code used for a round win
 #define WIN_CODE 0
 
+// This defines the WAITING message string
 #define WAITING "WAITING"
+// This defines the WELCOME message string
 #define WELCOME "WELCOME PRESS THE BUTTON TO START!!!"
+// This defines the RESETTING message string
 #define RESETTING "RESETTING"
+// This defines the GAME_LOSE message string
 #define GAME_LOSE "NICE TRY L!"
+// This defines the GAME_WIN message string
 #define GAME_WIN "VICTORY!"
-
-/** Display a string on the display.
- *  @param string is the string you want to display.*/
-void interface_display_string(char string[]);
 
 
 /** Sets the string we want to display on the screen.
@@ -42,11 +49,6 @@ bool interface_set_string(char* curr_string, char* prev_string);
  *  @param prev_char (previous character) is the previously set character on the screen.
  *  @return true if the interface was updated. Otherwise false.*/
 bool interface_set_character(char prev_char, char curr_char);
-
-
-/** Displays a single chracter on the display.
- *  @param character is the character you want to display.*/
-void interface_display_character(char character);
 
 
 /** Clears the interface elements.*/
@@ -77,7 +79,7 @@ char* interface_display_game_result(bool our_victory);
 
 /** This returns the curr_string, which describes the correct round result.
  *  @param result is the round result code.
- *  @return a pointer to the string that associated with that result code. 
+ *  @return a pointer to the string that associated with that result code.
  *  If it is unknown we return null.*/
 char* interface_display_round_result(uint8_t result);
 
