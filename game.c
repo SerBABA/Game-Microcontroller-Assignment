@@ -278,6 +278,7 @@ static void ir_task(const char options[], const uint8_t options_count)
     bool got_response = current_state_data.got_response;
 
     if (got_response && current_state_data.current_game_state == WAITING_ON_RESPONSE) {
+        current_state_data.prev_string = NULL;
         current_state_data.got_response = false;                        // Once we are in the waiting on response state and got the response
         clear_ir_buffer();                                              // we need to wipe the buffer and set the got response to false.
         ir_uart_putc(current_state_data.our_choice);                    // and we send through the our_choice one more time, and show the results.
